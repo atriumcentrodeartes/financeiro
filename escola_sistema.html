@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduFlow — Sistema Escolar</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,900;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0f13;--surface:#17171f;--surface2:#1e1e2a;--border:#2a2a3a;--accent:#6c63ff;--accent2:#ff6584;--accent3:#43e97b;--text:#e8e8f0;--text-muted:#7a7a9a;--gold:#f5c842;--fest:#ff9f43;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+
+/* SIDEBAR */
+.sidebar{width:240px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;}
+.logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
+.logo h1{font-family:'Fraunces',serif;font-size:22px;font-weight:900;letter-spacing:-.5px;}
+.logo span{color:var(--accent);}
+.logo p{font-size:11px;color:var(--text-muted);margin-top:2px;letter-spacing:.5px;text-transform:uppercase;}
+.nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .18s;color:var(--text-muted);font-size:14px;font-weight:500;border:1px solid transparent;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:linear-gradient(135deg,rgba(108,99,255,.2),rgba(108,99,255,.08));color:var(--accent);border-color:rgba(108,99,255,.3);}
+.nav-item .icon{font-size:18px;}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border);}
+.stats-mini{background:var(--surface2);border-radius:10px;padding:12px;display:flex;justify-content:space-between;}
+.stat-mini{text-align:center;}
+.stat-mini .val{font-family:'Fraunces',serif;font-size:20px;font-weight:900;}
+.stat-mini .lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;min-height:100vh;padding:32px;}
+.page{display:none;}.page.active{display:block;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.page-header h2{font-family:'Fraunces',serif;font-size:28px;font-weight:900;letter-spacing:-.5px;}
+.page-header p{color:var(--text-muted);font-size:14px;margin-top:3px;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;transition:all .18s;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#5a52e8;transform:translateY(-1px);}
+.btn-success{background:var(--accent3);color:#0a2a15;}
+.btn-danger{background:var(--accent2);color:#fff;}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-fest{background:linear-gradient(135deg,#ff9f43,#ee5a24);color:#fff;}.btn-fest:hover{opacity:.9;transform:translateY(-1px);}
+.btn-sm{padding:6px 12px;font-size:12px;}
+
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.metric-card{position:relative;overflow:hidden;}
+.metric-card .bg-glow{position:absolute;width:80px;height:80px;border-radius:50%;top:-20px;right:-20px;opacity:.15;filter:blur(20px);}
+.metric-card .metric-icon{font-size:24px;margin-bottom:12px;}
+.metric-card .metric-val{font-family:'Fraunces',serif;font-size:36px;font-weight:900;letter-spacing:-1px;}
+.metric-card .metric-label{color:var(--text-muted);font-size:13px;margin-top:4px;}
+.metric-card .metric-delta{font-size:12px;margin-top:8px;padding:3px 8px;border-radius:20px;display:inline-block;}
+.delta-up{background:rgba(67,233,123,.15);color:var(--accent3);}
+.delta-down{background:rgba(255,101,132,.15);color:var(--accent2);}
+
+/* TABLE */
+.table-container{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);}
+.table-header h3{font-size:16px;font-weight:600;}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;width:180px;}
+.search-box input::placeholder{color:var(--text-muted);}
+table{width:100%;border-collapse:collapse;}
+thead th{text-align:left;padding:12px 20px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;background:var(--surface2);}
+tbody tr{border-top:1px solid var(--border);transition:background .12s;}
+tbody tr:hover{background:rgba(108,99,255,.05);}
+tbody td{padding:13px 20px;font-size:14px;}
+.total-row{background:var(--surface2);border-top:2px solid var(--border);}
+.total-row td{font-weight:700;color:var(--accent);font-size:15px;}
+
+/* BADGE */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-active,.badge-pago{background:rgba(67,233,123,.15);color:var(--accent3);}
+.badge-inactive{background:rgba(255,101,132,.15);color:var(--accent2);}
+.badge-pending,.badge-pendente{background:rgba(245,200,66,.15);color:var(--gold);}
+.badge-paid{background:rgba(67,233,123,.15);color:var(--accent3);}
+.badge-vencido{background:rgba(255,101,132,.15);color:var(--accent2);}
+.badge-cancelado{background:rgba(122,122,154,.15);color:var(--text-muted);}
+.badge-ativo{background:rgba(67,233,123,.15);color:var(--accent3);}
+.badge-encerrado{background:rgba(122,122,154,.15);color:var(--text-muted);}
+.avatar{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;margin-right:8px;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;animation:mIn .2s ease;}
+.modal-wide{max-width:680px;}
+.modal-xl{max-width:800px;}
+@keyframes mIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.modal h3{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:20px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .18s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);}
+.form-group select option{background:var(--surface2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
+
+/* PAYMENT PIPELINE */
+.pipeline{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+.pipe-col{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.pipe-col-hd{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.pipe-col-hd h4{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.pipe-dot{width:8px;height:8px;border-radius:50%;}
+.pipe-col-body{padding:12px;min-height:160px;display:flex;flex-direction:column;gap:8px;}
+.pay-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px;cursor:pointer;transition:all .18s;}
+.pay-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+.pay-card .pn{font-size:13px;font-weight:600;margin-bottom:1px;}
+.pay-card .pe{font-size:11px;color:var(--text-muted);margin-bottom:5px;}
+.pay-card .pv{font-family:'Fraunces',serif;font-size:17px;font-weight:700;}
+.pay-card .pd{font-size:11px;color:var(--text-muted);margin-top:3px;}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;min-width:260px;animation:tIn .25s ease;box-shadow:0 8px 32px rgba(0,0,0,.4);}
+@keyframes tIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.toast.success{border-left:3px solid var(--accent3);}.toast.error{border-left:3px solid var(--accent2);}
+
+/* EVENTS */
+.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.event-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .18s;}
+.event-card:hover{border-color:rgba(108,99,255,.4);transform:translateY(-2px);}
+.event-card-bar{height:4px;}
+.event-card-body{padding:18px;}
+.event-card-body h4{font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:6px;}
+.event-meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+.event-meta-tag{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:12px;color:var(--text-muted);}
+.event-card-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--border);background:var(--surface2);}
+.event-price{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--accent);}
+
+/* FESTIVAL CARDS */
+.festival-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:28px;}
+.festival-card{background:var(--surface);border:2px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;cursor:pointer;}
+.festival-card:hover{border-color:rgba(255,159,67,.5);transform:translateY(-2px);}
+.festival-card.selected{border-color:var(--fest);box-shadow:0 0 0 3px rgba(255,159,67,.15);}
+.fc-top{height:5px;}
+.fc-body{padding:18px;}
+.fc-body h4{font-family:'Fraunces',serif;font-size:17px;font-weight:900;margin-bottom:4px;}
+.fc-meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+.fc-tag{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:11px;color:var(--text-muted);}
+.fc-cats{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.fc-cat-pill{display:flex;align-items:center;gap:4px;background:rgba(255,159,67,.12);border:1px solid rgba(255,159,67,.25);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;}
+.fc-cat-pill .pill-val{color:var(--fest);}
+.fc-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--border);background:var(--surface2);}
+
+/* FESTIVAL DETAIL VIEW */
+.fest-detail{background:linear-gradient(135deg,rgba(255,159,67,.12),rgba(238,90,36,.05));border:1px solid rgba(255,159,67,.3);border-radius:16px;padding:22px 26px;margin-bottom:24px;}
+.fest-detail-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;}
+.fest-detail-header h3{font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:var(--fest);}
+.fest-detail-header p{color:var(--text-muted);font-size:13px;margin-top:3px;}
+.cat-precos-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.cat-preco-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 10px;text-align:center;}
+.cpc-icon{font-size:22px;margin-bottom:5px;}
+.cpc-name{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);}
+.cpc-val{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--fest);margin-top:3px;}
+.cpc-max{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.cpc-inscs{font-size:11px;font-weight:600;margin-top:4px;}
+
+/* MODAL FESTIVAL PRECOS */
+.preco-row{display:flex;align-items:center;gap:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+.preco-row-icon{font-size:22px;}
+.preco-row-info{flex:1;}
+.preco-row-info strong{font-size:14px;}
+.preco-row-info span{font-size:11px;color:var(--text-muted);display:block;margin-top:1px;}
+.preco-input-wrap{display:flex;align-items:center;gap:6px;}
+.preco-input-wrap em{color:var(--text-muted);font-size:13px;font-style:normal;}
+.preco-input-wrap input{width:90px;text-align:right;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--fest);font-family:'Fraunces',serif;font-size:16px;font-weight:900;outline:none;transition:border-color .18s;}
+.preco-input-wrap input:focus{border-color:var(--fest);}
+
+/* INSCRIÇÃO MODAL */
+.fest-select-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;max-height:200px;overflow-y:auto;}
+.fsc{background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s;}
+.fsc:hover{border-color:var(--fest);}
+.fsc.active{border-color:var(--fest);background:rgba(255,159,67,.12);}
+.fsc-name{font-size:13px;font-weight:700;}
+.fsc-date{font-size:11px;color:var(--text-muted);}
+.fsc-precos{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.fsc-ptag{font-size:10px;font-weight:600;color:var(--fest);background:rgba(255,159,67,.12);border-radius:4px;padding:2px 6px;}
+
+.cat-picker{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+.cpb{background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .15s;}
+.cpb:hover{border-color:var(--fest);}
+.cpb.active{border-color:var(--fest);background:rgba(255,159,67,.15);}
+.cpb-icon{font-size:20px;}
+.cpb-name{font-size:11px;font-weight:700;margin-top:3px;}
+.cpb-price{font-size:11px;color:var(--fest);font-weight:600;}
+.cpb-max{font-size:10px;color:var(--text-muted);}
+
+.chips-area{display:flex;flex-wrap:wrap;gap:6px;min-height:40px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px;align-items:center;}
+.chip{display:inline-flex;align-items:center;gap:5px;background:rgba(108,99,255,.2);border:1px solid rgba(108,99,255,.4);border-radius:20px;padding:3px 10px 3px 6px;font-size:12px;font-weight:600;}
+.chip-av{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+.chip-rm{background:none;border:none;cursor:pointer;color:var(--accent2);font-size:15px;line-height:1;padding:0;margin-left:2px;}
+
+.resumo-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:12px;}
+.ri-cat{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--fest);letter-spacing:.4px;}
+.ri-alunos{font-size:13px;flex:1;}
+.ri-val{font-family:'Fraunces',serif;font-weight:700;color:var(--fest);white-space:nowrap;}
+
+.total-box{background:linear-gradient(135deg,rgba(255,159,67,.12),rgba(238,90,36,.05));border:1px solid rgba(255,159,67,.3);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-top:14px;}
+.total-box .tb-lbl{font-size:13px;color:var(--text-muted);}
+.total-box .tb-det{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.total-box .tb-val{font-family:'Fraunces',serif;font-size:30px;font-weight:900;color:var(--fest);}
+
+/* MISC */
+.summary-bar{display:flex;gap:12px;margin-bottom:24px;}
+.sum-item{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;}
+.sum-item .si-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.sum-item .si-val{font-family:'Fraunces',serif;font-size:22px;font-weight:900;}
+.sum-item .si-lbl{font-size:12px;color:var(--text-muted);}
+.tag-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.filter-tag{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);transition:all .15s;}
+.filter-tag.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.action-row{display:flex;align-items:center;gap:6px;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
+.empty-state .ei{font-size:48px;margin-bottom:12px;}
+.sec-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:10px;}
+.hr{border:none;border-top:1px solid var(--border);margin:16px 0;}
+.tabs{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;}
+.tab{flex:1;padding:8px;border-radius:7px;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);transition:all .15s;}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo"><h1>Edu<span>Flow</span></h1><p>Sistema Escolar</p></div>
+  <div class="nav">
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('alunos',this)"><span class="icon">👥</span> Alunos</div>
+    <div class="nav-item" onclick="showPage('eventos',this)"><span class="icon">🎯</span> Eventos</div>
+    <div class="nav-item" onclick="showPage('festivais',this)"><span class="icon">🎪</span> Festivais</div>
+    <div class="nav-item" onclick="showPage('pagamentos',this)"><span class="icon">💳</span> Pagamentos</div>
+    <div class="nav-item" onclick="showPage('relatorios',this)"><span class="icon">📋</span> Relatórios</div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="stats-mini">
+      <div class="stat-mini"><div class="val" id="stat-alunos">0</div><div class="lbl">Alunos</div></div>
+      <div class="stat-mini"><div class="val" id="stat-fest">0</div><div class="lbl">Festivais</div></div>
+      <div class="stat-mini"><div class="val" id="stat-pgtos">0</div><div class="lbl">Pagos</div></div>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div><h2>Dashboard</h2><p>Visão geral do sistema</p></div>
+    <span style="color:var(--text-muted);font-size:13px" id="current-date"></span>
+  </div>
+  <div class="cards-grid" id="dash-metrics"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="table-container"><div class="table-header"><h3>🎪 Festivais Ativos</h3></div><div id="dash-festivais" style="padding:12px"></div></div>
+    <div class="table-container"><div class="table-header"><h3>💰 Últimos Lançamentos</h3></div><div id="dash-pagamentos" style="padding:12px"></div></div>
+  </div>
+</div>
+
+<!-- ALUNOS -->
+<div class="page" id="page-alunos">
+  <div class="page-header">
+    <div><h2>Alunos</h2><p>Cadastro e gestão</p></div>
+    <button class="btn btn-primary" onclick="openModal('modal-aluno')">+ Novo Aluno</button>
+  </div>
+  <div class="table-container">
+    <div class="table-header"><h3>Lista de Alunos</h3><div class="search-box"><span>🔍</span><input type="text" id="search-alunos" placeholder="Buscar..." oninput="renderAlunos()"></div></div>
+    <table><thead><tr><th>Aluno</th><th>Série / Turma</th><th>Responsável</th><th>Contato</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tbody-alunos"></tbody></table>
+  </div>
+</div>
+
+<!-- EVENTOS -->
+<div class="page" id="page-eventos">
+  <div class="page-header">
+    <div><h2>Eventos</h2><p>Atividades escolares</p></div>
+    <button class="btn btn-primary" onclick="openModal('modal-evento')">+ Novo Evento</button>
+  </div>
+  <div class="tag-bar">
+    <span class="filter-tag active" onclick="filterEv('todos',this)">Todos</span>
+    <span class="filter-tag" onclick="filterEv('Passeio',this)">🚌 Passeios</span>
+    <span class="filter-tag" onclick="filterEv('Festa',this)">🎉 Festas</span>
+    <span class="filter-tag" onclick="filterEv('Formatura',this)">🎓 Formaturas</span>
+    <span class="filter-tag" onclick="filterEv('Esportivo',this)">⚽ Esportivos</span>
+    <span class="filter-tag" onclick="filterEv('Cultural',this)">🎭 Culturais</span>
+  </div>
+  <div class="events-grid" id="events-grid"></div>
+</div>
+
+<!-- FESTIVAIS -->
+<div class="page" id="page-festivais">
+  <div class="page-header">
+    <div><h2>Festivais</h2><p>Gestão de festivais e inscrições por categoria</p></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="openModal('modal-novo-festival')">🎪 Novo Festival</button>
+      <button class="btn btn-fest" onclick="abrirModalInscricao()">+ Nova Inscrição</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" id="tab-festivais" onclick="switchTab('festivais')">🎪 Festivais Cadastrados</button>
+    <button class="tab" id="tab-inscricoes" onclick="switchTab('inscricoes')">📋 Inscrições</button>
+  </div>
+
+  <!-- TAB: FESTIVAIS -->
+  <div id="view-festivais">
+    <div class="festival-cards-grid" id="festival-cards-grid"></div>
+  </div>
+
+  <!-- TAB: INSCRICOES -->
+  <div id="view-inscricoes" style="display:none">
+    <div class="summary-bar" id="inscricao-summary"></div>
+    <div class="table-container">
+      <div class="table-header"><h3>Todas as Inscrições</h3><div class="search-box"><span>🔍</span><input type="text" id="search-inscricoes" placeholder="Buscar aluno, festival..." oninput="renderInscricoesTab()"></div></div>
+      <table><thead><tr><th>Alunos</th><th>Festival</th><th>Categoria</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tbody-inscricoes"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- PAGAMENTOS -->
+<div class="page" id="page-pagamentos">
+  <div class="page-header">
+    <div><h2>Pagamentos</h2><p>Fluxo financeiro completo</p></div>
+    <button class="btn btn-primary" onclick="openModal('modal-pagamento')">+ Registrar</button>
+  </div>
+  <div class="summary-bar" id="payment-summary"></div>
+  <div class="pipeline" id="payment-pipeline"></div>
+  <div class="table-container">
+    <div class="table-header"><h3>Lançamentos de Eventos</h3><div class="search-box"><span>🔍</span><input type="text" id="search-pgtos" placeholder="Buscar..." oninput="renderPagamentos()"></div></div>
+    <table><thead><tr><th>Aluno</th><th>Evento</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Pagto</th><th>Ações</th></tr></thead><tbody id="tbody-pgtos"></tbody></table>
+  </div>
+</div>
+
+<!-- RELATÓRIOS -->
+<div class="page" id="page-relatorios">
+  <div class="page-header"><div><h2>Relatórios</h2><p>Resumo financeiro e participação</p></div></div>
+  <div id="relatorios-content"></div>
+</div>
+
+</main>
+
+<!-- ===== MODAIS ===== -->
+
+<!-- MODAL ALUNO -->
+<div class="modal-overlay" id="modal-aluno">
+  <div class="modal">
+    <h3 id="modal-aluno-title">Novo Aluno</h3>
+    <input type="hidden" id="aluno-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Nome Completo *</label><input type="text" id="aluno-nome"></div>
+      <div class="form-group"><label>Nascimento</label><input type="date" id="aluno-nascimento"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Série *</label>
+        <select id="aluno-serie"><option value="">Selecione...</option><option>1º Ano - EF</option><option>2º Ano - EF</option><option>3º Ano - EF</option><option>4º Ano - EF</option><option>5º Ano - EF</option><option>6º Ano - EF</option><option>7º Ano - EF</option><option>8º Ano - EF</option><option>9º Ano - EF</option><option>1º Ano - EM</option><option>2º Ano - EM</option><option>3º Ano - EM</option></select>
+      </div>
+      <div class="form-group"><label>Turma</label><select id="aluno-turma"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Responsável *</label><input type="text" id="aluno-responsavel"></div>
+      <div class="form-group"><label>Telefone</label><input type="text" id="aluno-telefone" placeholder="(11) 99999-9999"></div>
+    </div>
+    <div class="form-group"><label>E-mail</label><input type="email" id="aluno-email"></div>
+    <div class="form-group"><label>Status</label><select id="aluno-status"><option>Ativo</option><option>Inativo</option></select></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-aluno')">Cancelar</button><button class="btn btn-primary" onclick="salvarAluno()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL EVENTO -->
+<div class="modal-overlay" id="modal-evento">
+  <div class="modal">
+    <h3 id="modal-evento-title">Novo Evento</h3>
+    <input type="hidden" id="evento-edit-id">
+    <div class="form-group"><label>Nome *</label><input type="text" id="evento-nome"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Tipo *</label><select id="evento-tipo"><option value="">Selecione...</option><option>Passeio</option><option>Festa</option><option>Formatura</option><option>Esportivo</option><option>Cultural</option><option>Outro</option></select></div>
+      <div class="form-group"><label>Valor (R$) *</label><input type="number" id="evento-valor" min="0" step="0.01"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Data *</label><input type="date" id="evento-data"></div>
+      <div class="form-group"><label>Prazo Pgto</label><input type="date" id="evento-prazo"></div>
+    </div>
+    <div class="form-group"><label>Turmas</label><input type="text" id="evento-turmas"></div>
+    <div class="form-group"><label>Descrição</label><textarea id="evento-descricao" rows="2"></textarea></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-evento')">Cancelar</button><button class="btn btn-primary" onclick="salvarEvento()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL NOVO / EDITAR FESTIVAL -->
+<div class="modal-overlay" id="modal-novo-festival">
+  <div class="modal modal-wide">
+    <h3 id="modal-fest-title">🎪 Novo Festival</h3>
+    <input type="hidden" id="fest-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Nome do Festival *</label><input type="text" id="fest-nome" placeholder="Ex: Festival de Artes 2025"></div>
+      <div class="form-group"><label>Edição / Ano</label><input type="text" id="fest-edicao" placeholder="Ex: 1ª Edição"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Data do Evento *</label><input type="date" id="fest-data"></div>
+      <div class="form-group"><label>Prazo de Inscrição</label><input type="date" id="fest-prazo"></div>
+    </div>
+    <div class="form-group"><label>Descrição</label><textarea id="fest-descricao" rows="2" placeholder="Detalhes do festival..."></textarea></div>
+    <hr class="hr">
+    <div class="sec-lbl">💰 Valores por Categoria de Apresentação</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Defina o preço de inscrição para cada categoria. Deixe 0 para desabilitar.</p>
+    <div id="cat-precos-form"></div>
+    <hr class="hr">
+    <div class="form-group"><label>Status</label><select id="fest-status-field"><option value="Ativo">Ativo</option><option value="Encerrado">Encerrado</option></select></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-novo-festival')">Cancelar</button><button class="btn btn-fest" onclick="salvarFestival()">Salvar Festival</button></div>
+  </div>
+</div>
+
+<!-- MODAL INSCRIÇÃO -->
+<div class="modal-overlay" id="modal-inscricao">
+  <div class="modal modal-xl">
+    <h3 id="modal-ins-title">📝 Nova Inscrição</h3>
+    <input type="hidden" id="ins-edit-id">
+
+    <!-- PASSO 1: Selecionar Festival -->
+    <div class="sec-lbl">① Selecione o Festival</div>
+    <div class="fest-select-cards" id="fest-select-cards"></div>
+    <div id="fest-sel-aviso" style="font-size:11px;color:var(--accent2);min-height:16px;margin-bottom:12px"></div>
+
+    <hr class="hr">
+
+    <!-- PASSO 2: Categoria -->
+    <div class="sec-lbl">② Selecione a Categoria</div>
+    <div class="cat-picker" id="cat-picker"></div>
+    <div id="cat-alunos-section" style="display:none">
+      <div class="form-group">
+        <label id="lbl-cat-alunos">Adicionar Alunos</label>
+        <select id="sel-aluno" onchange="addAluno()"><option value="">— selecione —</option></select>
+      </div>
+      <div class="chips-area" id="chips-area"></div>
+      <div id="msg-lim" style="font-size:11px;color:var(--text-muted);margin-top:4px;min-height:14px"></div>
+    </div>
+    <div id="no-fest-msg" style="color:var(--text-muted);font-size:13px;padding:10px 0">← Selecione um festival para ver as categorias disponíveis</div>
+
+    <hr class="hr">
+
+    <!-- PASSO 3: Resumo -->
+    <div class="sec-lbl">③ Resumo e Pagamento</div>
+    <div id="resumo-itens" style="display:flex;flex-direction:column;gap:8px;min-height:36px"></div>
+    <div class="total-box">
+      <div><div class="tb-lbl">Valor Total da Inscrição</div><div class="tb-det" id="total-det"></div></div>
+      <div class="tb-val" id="total-val">R$ 0,00</div>
+    </div>
+    <div class="form-row" style="margin-top:16px">
+      <div class="form-group"><label>Forma de Pagto</label><select id="ins-forma"><option>PIX</option><option>Boleto</option><option>Cartão Débito</option><option>Cartão Crédito</option><option>Dinheiro</option></select></div>
+      <div class="form-group"><label>Vencimento *</label><input type="date" id="ins-vencimento"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Status</label><select id="ins-status"><option value="Pendente">Pendente</option><option value="Pago">Pago</option><option value="Vencido">Vencido</option><option value="Cancelado">Cancelado</option></select></div>
+      <div class="form-group"><label>Data Pagamento</label><input type="date" id="ins-data-pgto"></div>
+    </div>
+    <div class="form-group"><label>Observações</label><input type="text" id="ins-obs"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-inscricao')">Cancelar</button><button class="btn btn-fest" onclick="salvarInscricao()">✅ Confirmar Inscrição</button></div>
+  </div>
+</div>
+
+<!-- MODAL PAGAMENTO -->
+<div class="modal-overlay" id="modal-pagamento">
+  <div class="modal">
+    <h3 id="modal-pgto-title">Registrar Pagamento</h3>
+    <input type="hidden" id="pgto-edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>Aluno *</label><select id="pgto-aluno"></select></div>
+      <div class="form-group"><label>Evento *</label><select id="pgto-evento" onchange="fillValor()"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Valor (R$) *</label><input type="number" id="pgto-valor" min="0" step="0.01"></div>
+      <div class="form-group"><label>Vencimento *</label><input type="date" id="pgto-vencimento"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Forma</label><select id="pgto-forma"><option>PIX</option><option>Boleto</option><option>Cartão Débito</option><option>Cartão Crédito</option><option>Dinheiro</option></select></div>
+      <div class="form-group"><label>Status</label><select id="pgto-status"><option value="Pendente">Pendente</option><option value="Pago">Pago</option><option value="Vencido">Vencido</option><option value="Cancelado">Cancelado</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Data Pgto</label><input type="date" id="pgto-data"></div>
+      <div class="form-group"><label>Obs</label><input type="text" id="pgto-obs"></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-pagamento')">Cancelar</button><button class="btn btn-primary" onclick="salvarPagamento()">Confirmar</button></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ===== CATEGORIAS BASE =====
+const CATS_DEF = {
+  Solo:     {icon:'🎤', label:'Solo',     max:1 },
+  Duo:      {icon:'🎸', label:'Duo',      max:2 },
+  Trio:     {icon:'🎻', label:'Trio',     max:3 },
+  Quarteto: {icon:'🎺', label:'Quarteto', max:4 },
+  Conjunto: {icon:'🎹', label:'Conjunto', max:12},
+};
+
+// ===== DATA =====
+let alunos = [
+  {id:1,nome:'Ana Beatriz Lima',nascimento:'2012-04-15',serie:'7º Ano - EF',turma:'A',responsavel:'Carla Lima',telefone:'(11) 98765-4321',email:'carla@email.com',status:'Ativo'},
+  {id:2,nome:'Pedro Henrique Souza',nascimento:'2011-09-22',serie:'8º Ano - EF',turma:'B',responsavel:'José Souza',telefone:'(11) 91234-5678',email:'jose@email.com',status:'Ativo'},
+  {id:3,nome:'Mariana Costa',nascimento:'2013-01-10',serie:'6º Ano - EF',turma:'A',responsavel:'Fernanda Costa',telefone:'(11) 99876-1234',email:'fer@email.com',status:'Ativo'},
+  {id:4,nome:'Lucas Ferreira',nascimento:'2010-07-30',serie:'9º Ano - EF',turma:'C',responsavel:'Roberto Ferreira',telefone:'(11) 95555-0000',email:'rob@email.com',status:'Ativo'},
+  {id:5,nome:'Julia Martins',nascimento:'2012-11-05',serie:'7º Ano - EF',turma:'B',responsavel:'Adriana Martins',telefone:'(11) 97777-2222',email:'adri@email.com',status:'Ativo'},
+  {id:6,nome:'Gabriel Oliveira',nascimento:'2011-03-17',serie:'8º Ano - EF',turma:'A',responsavel:'Paulo Oliveira',telefone:'(11) 96666-3333',email:'paulo@email.com',status:'Ativo'},
+];
+
+let eventos = [
+  {id:1,nome:'Passeio ao Zoológico',tipo:'Passeio',valor:85,data:'2025-05-20',prazo:'2025-05-10',turmas:'5º A, 5º B',descricao:'Visita ao Zoológico Municipal'},
+  {id:2,nome:'Festa Junina',tipo:'Festa',valor:40,data:'2025-06-15',prazo:'2025-06-08',turmas:'Todas',descricao:'Festa junina com apresentações'},
+];
+
+let pagamentos = [
+  {id:1,alunoId:1,eventoId:1,valor:85,vencimento:'2025-05-10',forma:'PIX',status:'Pago',data:'2025-04-28',obs:''},
+  {id:2,alunoId:2,eventoId:1,valor:85,vencimento:'2025-05-10',forma:'Boleto',status:'Pendente',data:'',obs:''},
+];
+
+// Festivais: cada um tem seus próprios preços por categoria
+let festivais = [
+  {
+    id:1, nome:'Festival de Talentos 2025', edicao:'1ª Edição',
+    data:'2025-08-10', prazo:'2025-07-20', descricao:'Festival anual de talentos musicais',
+    status:'Ativo',
+    precos:{ Solo:80, Duo:120, Trio:150, Quarteto:180, Conjunto:250 }
+  },
+  {
+    id:2, nome:'Festival de Artes Cênicas', edicao:'3ª Edição',
+    data:'2025-10-05', prazo:'2025-09-20', descricao:'Teatro, dança e expressão corporal',
+    status:'Ativo',
+    precos:{ Solo:100, Duo:160, Trio:200, Quarteto:240, Conjunto:320 }
+  },
+  {
+    id:3, nome:'Festival Junino Musical', edicao:'2025',
+    data:'2025-06-20', prazo:'2025-06-10', descricao:'Edição especial de festa junina',
+    status:'Encerrado',
+    precos:{ Solo:60, Duo:90, Trio:110, Quarteto:130, Conjunto:180 }
+  },
+];
+
+let inscricoes = [
+  {id:1,festivalId:1,categoria:'Duo',alunoIds:[1,3],valor:120,forma:'PIX',vencimento:'2025-07-20',status:'Pago',dataPgto:'2025-07-10',obs:''},
+  {id:2,festivalId:1,categoria:'Solo',alunoIds:[2],valor:80,forma:'Boleto',vencimento:'2025-07-20',status:'Pendente',dataPgto:'',obs:''},
+  {id:3,festivalId:2,categoria:'Quarteto',alunoIds:[1,2,3,4],valor:240,forma:'PIX',vencimento:'2025-09-20',status:'Pendente',dataPgto:'',obs:''},
+];
+
+let ids = {alunos:10,eventos:10,pagamentos:10,festivais:10,inscricoes:10};
+let evFilter = 'todos';
+let activeTab = 'festivais';
+
+// Inscrição temp state
+let selFestivalId = null;
+let tempCat = null;
+let tempAlunos = {}; // {cat: [alunoId...]}
+
+// ===== UTILS =====
+const $ = id => document.getElementById(id);
+const fmt = v => 'R$ '+(+v).toFixed(2).replace('.',',');
+const fmtD = d => d?new Date(d+'T00:00').toLocaleDateString('pt-BR'):'—';
+const COLORS = ['#6c63ff','#ff6584','#43e97b','#f5c842','#00bcd4','#ff9800'];
+const TYPE_COLORS = {Passeio:'#43e97b',Festa:'#ff6584',Formatura:'#6c63ff',Esportivo:'#ff9800',Cultural:'#00bcd4',Outro:'#f5c842'};
+const FEST_COLORS = ['#ff9f43','#6c63ff','#43e97b','#ff6584','#00bcd4','#f5c842'];
+function fc(n){let h=0;for(let c of n)h=(h<<5)-h+c.charCodeAt(0);return COLORS[Math.abs(h)%COLORS.length];}
+function ini(n){return n.split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase();}
+function festColor(i){return FEST_COLORS[i%FEST_COLORS.length];}
+
+function toast(msg,type='success'){
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${type==='success'?'✅':'❌'}</span>${msg}`;
+  $('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(),3200);
+}
+
+function updStats(){
+  $('stat-alunos').textContent=alunos.filter(a=>a.status==='Ativo').length;
+  $('stat-fest').textContent=festivais.length;
+  $('stat-pgtos').textContent=[...pagamentos,...inscricoes].filter(p=>p.status==='Pago').length;
+}
+
+// ===== NAV =====
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  $(`page-${name}`).classList.add('active');
+  el.classList.add('active');
+  ({dashboard:renderDash,alunos:renderAlunos,eventos:renderEventos,festivais:renderFestivaisPage,pagamentos:renderPagamentos,relatorios:renderRelatorios})[name]?.();
+  updStats();
+}
+
+function switchTab(tab){
+  activeTab=tab;
+  ['festivais','inscricoes'].forEach(t=>{
+    $(`tab-${t}`).classList.toggle('active',t===tab);
+    $(`view-${t}`).style.display=t===tab?'block':'none';
+  });
+  if(tab==='inscricoes')renderInscricoesTab();
+  else renderFestivalCards();
+}
+
+// ===== DASHBOARD =====
+function renderDash(){
+  $('current-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const all=[...pagamentos,...inscricoes];
+  const rec=all.filter(p=>p.status==='Pago').reduce((s,p)=>s+p.valor,0);
+  const venc=all.filter(p=>p.status==='Vencido').reduce((s,p)=>s+p.valor,0);
+  $('dash-metrics').innerHTML=[
+    {icon:'👥',label:'Alunos Ativos',val:alunos.filter(a=>a.status==='Ativo').length,color:'#6c63ff',delta:'Cadastrados',up:true},
+    {icon:'🎪',label:'Festivais Ativos',val:festivais.filter(f=>f.status==='Ativo').length,color:'#ff9f43',delta:`${inscricoes.length} inscrições`,up:true},
+    {icon:'💰',label:'Total Recebido',val:fmt(rec),color:'#43e97b',delta:'Todos os lançamentos',up:true},
+    {icon:'⚠️',label:'Valores Vencidos',val:fmt(venc),color:'#ff6584',delta:all.filter(p=>p.status==='Vencido').length+' itens',up:false},
+  ].map(m=>`<div class="card metric-card"><div class="bg-glow" style="background:${m.color}"></div><div class="metric-icon">${m.icon}</div><div class="metric-val">${m.val}</div><div class="metric-label">${m.label}</div><span class="metric-delta ${m.up?'delta-up':'delta-down'}">${m.delta}</span></div>`).join('');
+
+  $('dash-festivais').innerHTML=festivais.slice(0,4).map((f,i)=>{
+    const cnt=inscricoes.filter(x=>x.festivalId===f.id).length;
+    const rec2=inscricoes.filter(x=>x.festivalId===f.id&&x.status==='Pago').reduce((s,x)=>s+x.valor,0);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="width:34px;height:34px;border-radius:9px;background:${festColor(i)}22;border:1px solid ${festColor(i)}44;display:inline-flex;align-items:center;justify-content:center;font-size:16px">🎪</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${f.nome}</div><div style="font-size:11px;color:var(--text-muted)">${fmtD(f.data)} · ${cnt} inscrições</div></div>
+      <div style="text-align:right"><div style="font-family:'Fraunces',serif;font-weight:700;color:${festColor(i)};font-size:14px">${fmt(rec2)}</div><span class="badge badge-${f.status.toLowerCase()}" style="font-size:10px">${f.status}</span></div>
+    </div>`;
+  }).join('')||'<div class="empty-state"><div class="ei">🎪</div><p>Nenhum festival</p></div>';
+
+  $('dash-pagamentos').innerHTML=[...inscricoes].slice(-5).reverse().map(i=>{
+    const fest=festivais.find(f=>f.id===i.festivalId);
+    const nm=i.alunoIds.map(id=>alunos.find(a=>a.id===id)?.nome?.split(' ')[0]||'?').join(', ');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div class="avatar" style="background:${fc(nm)};color:#fff;width:28px;height:28px;font-size:10px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;margin-right:0">${ini(nm)}</div>
+      <div style="flex:1"><div style="font-size:12px;font-weight:600">${nm}</div><div style="font-size:11px;color:var(--text-muted)">🎪 ${fest?.nome||'—'} · ${i.categoria}</div></div>
+      <span class="badge badge-${i.status.toLowerCase()}">${i.status}</span>
+    </div>`;
+  }).join('');
+}
+
+// ===== ALUNOS =====
+function renderAlunos(){
+  const q=($('search-alunos')?.value||'').toLowerCase();
+  const f=alunos.filter(a=>a.nome.toLowerCase().includes(q)||a.responsavel.toLowerCase().includes(q)||a.serie.toLowerCase().includes(q));
+  $('tbody-alunos').innerHTML=f.length?f.map(a=>`<tr>
+    <td><span class="avatar" style="background:${fc(a.nome)};color:#fff">${ini(a.nome)}</span><strong>${a.nome}</strong><div style="font-size:11px;color:var(--text-muted)">${a.email||''}</div></td>
+    <td>${a.serie}${a.turma?' — '+a.turma:''}</td><td>${a.responsavel}</td><td>${a.telefone||'—'}</td>
+    <td><span class="badge badge-${a.status==='Ativo'?'active':'inactive'}">${a.status}</span></td>
+    <td><div class="action-row"><button class="btn btn-ghost btn-sm" onclick="editAluno(${a.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="delAluno(${a.id})">🗑</button></div></td>
+  </tr>`).join(''):'<tr><td colspan="6"><div class="empty-state"><div class="ei">👥</div><p>Nenhum aluno</p></div></td></tr>';
+}
+function salvarAluno(){
+  const nome=$('aluno-nome').value.trim(),serie=$('aluno-serie').value,resp=$('aluno-responsavel').value.trim();
+  if(!nome||!serie||!resp){toast('Campos obrigatórios!','error');return;}
+  const eid=parseInt($('aluno-edit-id').value);
+  const obj={id:eid||++ids.alunos,nome,serie,turma:$('aluno-turma').value,nascimento:$('aluno-nascimento').value,responsavel:resp,telefone:$('aluno-telefone').value,email:$('aluno-email').value,status:$('aluno-status').value};
+  if(eid){alunos[alunos.findIndex(a=>a.id===eid)]=obj;toast('Aluno atualizado!');}
+  else{alunos.push(obj);toast('Aluno cadastrado!');}
+  closeModal('modal-aluno');renderAlunos();updStats();
+}
+function editAluno(id){
+  const a=alunos.find(x=>x.id===id);
+  $('modal-aluno-title').textContent='Editar Aluno';$('aluno-edit-id').value=a.id;
+  $('aluno-nome').value=a.nome;$('aluno-nascimento').value=a.nascimento;$('aluno-serie').value=a.serie;$('aluno-turma').value=a.turma;
+  $('aluno-responsavel').value=a.responsavel;$('aluno-telefone').value=a.telefone;$('aluno-email').value=a.email;$('aluno-status').value=a.status;
+  openModal('modal-aluno');
+}
+function delAluno(id){if(!confirm('Remover?'))return;alunos=alunos.filter(a=>a.id!==id);renderAlunos();updStats();toast('Removido!');}
+
+// ===== EVENTOS =====
+function filterEv(t,el){evFilter=t;document.querySelectorAll('.filter-tag').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderEventos();}
+function renderEventos(){
+  const f=evFilter==='todos'?eventos:eventos.filter(e=>e.tipo===evFilter);
+  $('events-grid').innerHTML=f.length?f.map(e=>{
+    const col=TYPE_COLORS[e.tipo]||'#6c63ff';
+    const np=pagamentos.filter(p=>p.eventoId===e.id).length;
+    const pp=pagamentos.filter(p=>p.eventoId===e.id&&p.status==='Pago').length;
+    return `<div class="event-card">
+      <div class="event-card-bar" style="background:${col}"></div>
+      <div class="event-card-body">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="background:${col}22;color:${col};border:1px solid ${col}44;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700">${e.tipo}</span>
+          <div class="action-row"><button class="btn btn-ghost btn-sm" onclick="editEvento(${e.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="delEvento(${e.id})">🗑</button></div>
+        </div>
+        <h4>${e.nome}</h4><p style="font-size:12px;color:var(--text-muted)">${e.descricao||''}</p>
+        <div class="event-meta"><span class="event-meta-tag">📅 ${fmtD(e.data)}</span><span class="event-meta-tag">⏰ ${fmtD(e.prazo)}</span>${e.turmas?`<span class="event-meta-tag">👥 ${e.turmas}</span>`:''}</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted)"><span>${pp}/${np} pagos</span><div style="flex:1;height:4px;background:var(--border);border-radius:2px"><div style="height:4px;background:${col};border-radius:2px;width:${np>0?(pp/np*100).toFixed(0):0}%"></div></div></div>
+      </div>
+      <div class="event-card-footer">
+        <div><div class="event-price">${fmt(e.valor)}</div><div style="font-size:11px;color:var(--text-muted)">por aluno</div></div>
+        <button class="btn btn-primary btn-sm" onclick="quickPgto(${e.id})">+ Lançar</button>
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty-state" style="grid-column:1/-1"><div class="ei">🎯</div><p>Nenhum evento</p></div>';
+}
+function salvarEvento(){
+  const nome=$('evento-nome').value.trim(),tipo=$('evento-tipo').value,valor=parseFloat($('evento-valor').value),data=$('evento-data').value;
+  if(!nome||!tipo||!valor||!data){toast('Campos obrigatórios!','error');return;}
+  const eid=parseInt($('evento-edit-id').value);
+  const obj={id:eid||++ids.eventos,nome,tipo,valor,data,prazo:$('evento-prazo').value,turmas:$('evento-turmas').value,descricao:$('evento-descricao').value};
+  if(eid){eventos[eventos.findIndex(e=>e.id===eid)]=obj;toast('Atualizado!');}
+  else{eventos.push(obj);toast('Evento criado!');}
+  closeModal('modal-evento');renderEventos();
+}
+function editEvento(id){
+  const e=eventos.find(x=>x.id===id);
+  $('modal-evento-title').textContent='Editar Evento';$('evento-edit-id').value=e.id;
+  $('evento-nome').value=e.nome;$('evento-tipo').value=e.tipo;$('evento-valor').value=e.valor;
+  $('evento-data').value=e.data;$('evento-prazo').value=e.prazo;$('evento-turmas').value=e.turmas;$('evento-descricao').value=e.descricao;
+  openModal('modal-evento');
+}
+function delEvento(id){if(!confirm('Remover?'))return;eventos=eventos.filter(e=>e.id!==id);renderEventos();toast('Removido!');}
+
+// ===== FESTIVAIS =====
+
+function buildCatPrecosForm(precos={}){
+  $('cat-precos-form').innerHTML=Object.entries(CATS_DEF).map(([k,v])=>`
+    <div class="preco-row">
+      <span class="preco-row-icon">${v.icon}</span>
+      <div class="preco-row-info"><strong>${v.label}</strong><span>Máximo ${v.max} participante(s) por inscrição</span></div>
+      <div class="preco-input-wrap"><em>R$</em><input type="number" id="preco-${k}" value="${precos[k]||0}" min="0" step="0.01" placeholder="0,00"></div>
+    </div>`).join('');
+}
+
+function salvarFestival(){
+  const nome=$('fest-nome').value.trim(), data=$('fest-data').value;
+  if(!nome||!data){toast('Nome e data são obrigatórios!','error');return;}
+  const precos={};
+  Object.keys(CATS_DEF).forEach(k=>{precos[k]=parseFloat($(`preco-${k}`)?.value)||0;});
+  const eid=parseInt($('fest-edit-id').value);
+  const obj={id:eid||++ids.festivais,nome,edicao:$('fest-edicao').value,data,prazo:$('fest-prazo').value,descricao:$('fest-descricao').value,status:$('fest-status-field').value,precos};
+  if(eid){festivais[festivais.findIndex(f=>f.id===eid)]=obj;toast('Festival atualizado!');}
+  else{festivais.push(obj);toast('Festival criado! 🎪');}
+  closeModal('modal-novo-festival');renderFestivalCards();updStats();
+}
+
+function editFestival(id){
+  const f=festivais.find(x=>x.id===id);
+  $('modal-fest-title').textContent='✏️ Editar Festival';$('fest-edit-id').value=f.id;
+  $('fest-nome').value=f.nome;$('fest-edicao').value=f.edicao||'';$('fest-data').value=f.data;$('fest-prazo').value=f.prazo||'';$('fest-descricao').value=f.descricao||'';$('fest-status-field').value=f.status||'Ativo';
+  buildCatPrecosForm(f.precos);
+  $('modal-novo-festival').classList.add('open');
+}
+
+function delFestival(id){
+  if(!confirm('Remover festival e todas as suas inscrições?'))return;
+  festivais=festivais.filter(f=>f.id!==id);
+  inscricoes=inscricoes.filter(i=>i.festivalId!==id);
+  renderFestivalCards();updStats();toast('Festival removido!');
+}
+
+function renderFestivaisPage(){
+  renderFestivalCards();
+  if(activeTab==='inscricoes')renderInscricoesTab();
+}
+
+function renderFestivalCards(){
+  const grid=$('festival-cards-grid');
+  if(!grid)return;
+  if(!festivais.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="ei">🎪</div><p>Nenhum festival cadastrado</p></div>';return;}
+  grid.innerHTML=festivais.map((f,i)=>{
+    const col=festColor(i);
+    const cnt=inscricoes.filter(x=>x.festivalId===f.id).length;
+    const rec=inscricoes.filter(x=>x.festivalId===f.id&&x.status==='Pago').reduce((s,x)=>s+x.valor,0);
+    const tot=inscricoes.filter(x=>x.festivalId===f.id).reduce((s,x)=>s+x.valor,0);
+    const ativas=Object.entries(f.precos).filter(([,v])=>v>0);
+    return `<div class="festival-card">
+      <div class="fc-top" style="background:${col}"></div>
+      <div class="fc-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <h4>${f.nome}</h4>
+            <div style="font-size:12px;color:var(--text-muted)">${f.edicao||''}</div>
+          </div>
+          <span class="badge badge-${f.status.toLowerCase()}">${f.status}</span>
+        </div>
+        <div class="fc-meta">
+          <span class="fc-tag">📅 ${fmtD(f.data)}</span>
+          ${f.prazo?`<span class="fc-tag">⏰ Prazo: ${fmtD(f.prazo)}</span>`:''}
+          <span class="fc-tag">📝 ${cnt} inscrições</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${f.descricao||''}</div>
+        <div class="fc-cats">
+          ${ativas.map(([k,v])=>`<span class="fc-cat-pill">${CATS_DEF[k].icon} ${CATS_DEF[k].label} <span class="pill-val">${fmt(v)}</span></span>`).join('')}
+        </div>
+      </div>
+      <div class="fc-footer">
+        <div>
+          <div style="font-size:11px;color:var(--text-muted)">Arrecadado / Total</div>
+          <div style="font-family:'Fraunces',serif;font-size:16px;font-weight:900;color:${col}">${fmt(rec)} <span style="font-size:12px;color:var(--text-muted)">/ ${fmt(tot)}</span></div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-fest btn-sm" onclick="abrirModalInscricao(${f.id})">+ Inscrição</button>
+          <button class="btn btn-ghost btn-sm" onclick="editFestival(${f.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="delFestival(${f.id})">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== INSCRIÇÕES =====
+function renderInscricoesTab(){
+  const q=($('search-inscricoes')?.value||'').toLowerCase();
+  const f=inscricoes.filter(i=>{
+    const nms=i.alunoIds.map(id=>alunos.find(a=>a.id===id)?.nome||'').join(' ');
+    const fest=festivais.find(x=>x.id===i.festivalId);
+    return nms.toLowerCase().includes(q)||(fest?.nome||'').toLowerCase().includes(q)||i.categoria.toLowerCase().includes(q);
+  });
+  const pago=inscricoes.filter(i=>i.status==='Pago').reduce((s,i)=>s+i.valor,0);
+  const pend=inscricoes.filter(i=>i.status==='Pendente').reduce((s,i)=>s+i.valor,0);
+  const venc=inscricoes.filter(i=>i.status==='Vencido').reduce((s,i)=>s+i.valor,0);
+  $('inscricao-summary').innerHTML=[
+    {icon:'✅',label:'Recebido',val:fmt(pago),color:'#43e97b'},
+    {icon:'⏳',label:'Pendente',val:fmt(pend),color:'#f5c842'},
+    {icon:'❌',label:'Vencido',val:fmt(venc),color:'#ff6584'},
+    {icon:'📊',label:'Total',val:fmt(pago+pend+venc),color:'#6c63ff'},
+  ].map(s=>`<div class="sum-item"><div class="si-icon" style="background:${s.color}22">${s.icon}</div><div><div class="si-val" style="color:${s.color}">${s.val}</div><div class="si-lbl">${s.label}</div></div></div>`).join('');
+
+  $('tbody-inscricoes').innerHTML=f.length?f.map(i=>{
+    const fest=festivais.find(x=>x.id===i.festivalId);
+    const cat=CATS_DEF[i.categoria];
+    const fi=festivais.findIndex(x=>x.id===i.festivalId);
+    const col=festColor(fi);
+    const nms=i.alunoIds.map(id=>{
+      const a=alunos.find(x=>x.id===id);
+      return a?`<span style="display:inline-flex;align-items:center;gap:4px"><span class="chip-av" style="background:${fc(a.nome)};color:#fff;width:20px;height:20px;font-size:9px">${ini(a.nome)}</span>${a.nome.split(' ').slice(0,2).join(' ')}</span>`:'?';
+    }).join('<br>');
+    return `<tr>
+      <td style="font-size:13px;line-height:1.8">${nms}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="width:28px;height:28px;border-radius:7px;background:${col}22;border:1px solid ${col}33;display:inline-flex;align-items:center;justify-content:center;font-size:14px">🎪</span>
+          <div><div style="font-size:13px;font-weight:600">${fest?.nome||'—'}</div><div style="font-size:11px;color:var(--text-muted)">${fmtD(fest?.data)}</div></div>
+        </div>
+      </td>
+      <td><span style="font-size:18px">${cat?.icon||'🎵'}</span> <strong>${i.categoria}</strong><div style="font-size:11px;color:var(--text-muted)">${i.alunoIds.length}p</div></td>
+      <td><span style="font-family:'Fraunces',serif;font-size:17px;font-weight:900;color:var(--fest)">${fmt(i.valor)}</span></td>
+      <td>${fmtD(i.vencimento)}<div style="font-size:11px;color:var(--text-muted)">${i.forma}</div></td>
+      <td><span class="badge badge-${i.status.toLowerCase()}">${i.status}</span></td>
+      <td><div class="action-row">
+        ${i.status==='Pendente'?`<button class="btn btn-success btn-sm" onclick="pagarIns(${i.id})">✓ Pago</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="editInscricao(${i.id})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="delInscricao(${i.id})">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="7"><div class="empty-state"><div class="ei">🎪</div><p>Nenhuma inscrição</p></div></td></tr>';
+}
+
+function pagarIns(id){const i=inscricoes.find(x=>x.id===id);i.status='Pago';i.dataPgto=new Date().toISOString().split('T')[0];renderInscricoesTab();updStats();toast('Confirmado! ✅');}
+function delInscricao(id){if(!confirm('Remover?'))return;inscricoes=inscricoes.filter(x=>x.id!==id);renderInscricoesTab();updStats();toast('Removida!');}
+
+// ===== MODAL INSCRIÇÃO =====
+function buildFestSelectCards(preselId=null){
+  $('fest-select-cards').innerHTML=festivais.map((f,i)=>{
+    const col=festColor(i);
+    const ativas=Object.entries(f.precos).filter(([,v])=>v>0);
+    const sel=f.id===preselId;
+    return `<div class="fsc ${sel?'active':''}" id="fsc-${f.id}" onclick="selectFestival(${f.id})">
+      <div class="fsc-name">${f.nome} <span style="font-size:11px;color:var(--text-muted)">${f.edicao||''}</span></div>
+      <div class="fsc-date">📅 ${fmtD(f.data)} · <span class="badge badge-${f.status.toLowerCase()}" style="font-size:9px">${f.status}</span></div>
+      <div class="fsc-precos">${ativas.slice(0,3).map(([k,v])=>`<span class="fsc-ptag">${CATS_DEF[k].icon} ${fmt(v)}</span>`).join('')}${ativas.length>3?`<span class="fsc-ptag">+${ativas.length-3}</span>`:''}</div>
+    </div>`;
+  }).join('')||'<div style="color:var(--text-muted);font-size:13px">Nenhum festival cadastrado</div>';
+}
+
+function selectFestival(id){
+  selFestivalId=id;
+  tempCat=null;tempAlunos={};
+  document.querySelectorAll('.fsc').forEach(el=>el.classList.remove('active'));
+  $(`fsc-${id}`)?.classList.add('active');
+  $('fest-sel-aviso').textContent='';
+  buildCatPickerForFestival(id);
+  renderResumoIns();
+}
+
+function buildCatPickerForFestival(festId){
+  const fest=festivais.find(f=>f.id===festId);
+  if(!fest){$('cat-picker').innerHTML='';$('no-fest-msg').style.display='block';return;}
+  $('no-fest-msg').style.display='none';
+  const ativas=Object.entries(fest.precos).filter(([,v])=>v>0);
+  if(!ativas.length){$('cat-picker').innerHTML='<div style="color:var(--text-muted);font-size:13px">Este festival não tem categorias com preço definido</div>';return;}
+  $('cat-picker').innerHTML=ativas.map(([k,v])=>`
+    <div class="cpb ${tempCat===k?'active':''}" id="cpb-${k}" onclick="selectCat('${k}')">
+      <div class="cpb-icon">${CATS_DEF[k].icon}</div>
+      <div class="cpb-name">${CATS_DEF[k].label}</div>
+      <div class="cpb-price">${fmt(v)}</div>
+      <div class="cpb-max">até ${CATS_DEF[k].max}p</div>
+    </div>`).join('');
+  $('cat-alunos-section').style.display='none';
+}
+
+function selectCat(k){
+  if(!selFestivalId){$('fest-sel-aviso').textContent='← Selecione um festival primeiro';return;}
+  tempCat=k;
+  document.querySelectorAll('.cpb').forEach(b=>b.classList.remove('active'));
+  $(`cpb-${k}`)?.classList.add('active');
+  if(!tempAlunos[k])tempAlunos[k]=[];
+  $('lbl-cat-alunos').textContent=`Alunos — ${CATS_DEF[k].label} (máx ${CATS_DEF[k].max})`;
+  $('cat-alunos-section').style.display='block';
+  $('sel-aluno').innerHTML='<option value="">— selecione —</option>'+
+    alunos.filter(a=>a.status==='Ativo').map(a=>`<option value="${a.id}">${a.nome} (${a.serie})</option>`).join('');
+  renderChips();
+  renderResumoIns();
+}
+
+function addAluno(){
+  if(!tempCat)return;
+  const id=parseInt($('sel-aluno').value);
+  if(!id)return;
+  const cfg=CATS_DEF[tempCat],lista=tempAlunos[tempCat];
+  if(lista.includes(id)){toast('Aluno já adicionado!','error');$('sel-aluno').value='';return;}
+  if(lista.length>=cfg.max){toast(`${cfg.label} permite no máximo ${cfg.max} aluno(s)!`,'error');$('sel-aluno').value='';return;}
+  lista.push(id);$('sel-aluno').value='';
+  renderChips();renderResumoIns();
+}
+
+function remAluno(cat,id){
+  tempAlunos[cat]=tempAlunos[cat].filter(x=>x!==id);
+  if(!tempAlunos[cat].length)delete tempAlunos[cat];
+  renderChips();renderResumoIns();
+}
+
+function remCat(cat){delete tempAlunos[cat];renderResumoIns();}
+
+function renderChips(){
+  if(!tempCat||!tempAlunos[tempCat]){$('chips-area').innerHTML='<span style="color:var(--text-muted);font-size:12px">Nenhum aluno selecionado</span>';$('msg-lim').textContent='';return;}
+  const ids2=tempAlunos[tempCat],cfg=CATS_DEF[tempCat];
+  $('chips-area').innerHTML=ids2.length?ids2.map(id=>{
+    const a=alunos.find(x=>x.id===id);
+    return `<span class="chip"><span class="chip-av" style="background:${fc(a?.nome||'')};color:#fff">${ini(a?.nome||'?')}</span>${a?.nome?.split(' ').slice(0,2).join(' ')||'?'}<button class="chip-rm" onclick="remAluno('${tempCat}',${id})">×</button></span>`;
+  }).join(''):'<span style="color:var(--text-muted);font-size:12px">Nenhum aluno selecionado</span>';
+  $('msg-lim').textContent=`${ids2.length}/${cfg.max} participante(s)`;
+}
+
+function renderResumoIns(){
+  const fest=festivais.find(f=>f.id===selFestivalId);
+  let total=0,dets=[];
+  $('resumo-itens').innerHTML='';
+  Object.entries(tempAlunos).filter(([,ids2])=>ids2.length>0).forEach(([cat,ids2])=>{
+    const cfg=CATS_DEF[cat];
+    const preco=fest?fest.precos[cat]||0:0;
+    total+=preco;dets.push(`${cfg.label} ${fmt(preco)}`);
+    const nms=ids2.map(id=>alunos.find(a=>a.id===id)?.nome?.split(' ').slice(0,2).join(' ')||'?').join(', ');
+    $('resumo-itens').innerHTML+=`<div class="resumo-item">
+      <span style="font-size:20px">${cfg.icon}</span>
+      <div style="flex:1"><div class="ri-cat">${cfg.label} · ${ids2.length} participante(s)</div><div class="ri-alunos">${nms}</div></div>
+      <div class="ri-val">${fmt(preco)}</div>
+      ${cat!==tempCat?`<button class="btn btn-danger btn-sm" onclick="remCat('${cat}')">×</button>`:''}
+    </div>`;
+  });
+  if(!$('resumo-itens').innerHTML)$('resumo-itens').innerHTML='<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Selecione uma categoria e adicione alunos</div>';
+  $('total-val').textContent=fmt(total);
+  $('total-det').textContent=dets.join(' + ')||'—';
+}
+
+function abrirModalInscricao(preselFestId=null){
+  selFestivalId=null;tempCat=null;tempAlunos={};
+  buildFestSelectCards(preselFestId);
+  $('cat-picker').innerHTML='';
+  $('cat-alunos-section').style.display='none';
+  $('no-fest-msg').style.display='block';
+  $('resumo-itens').innerHTML='';
+  $('total-val').textContent='R$ 0,00';$('total-det').textContent='—';
+  $('modal-ins-title').textContent='📝 Nova Inscrição';$('ins-edit-id').value='';
+  ['ins-vencimento','ins-data-pgto','ins-obs'].forEach(f=>$(f).value='');
+  $('ins-forma').value='PIX';$('ins-status').value='Pendente';
+  if(preselFestId)selectFestival(preselFestId);
+  $('modal-inscricao').classList.add('open');
+}
+
+function editInscricao(id){
+  const ins=inscricoes.find(x=>x.id===id);
+  selFestivalId=ins.festivalId;tempCat=null;
+  tempAlunos={};tempAlunos[ins.categoria]=[...ins.alunoIds];
+  buildFestSelectCards(ins.festivalId);
+  $('modal-ins-title').textContent='✏️ Editar Inscrição';$('ins-edit-id').value=ins.id;
+  $('ins-forma').value=ins.forma;$('ins-vencimento').value=ins.vencimento;
+  $('ins-status').value=ins.status;$('ins-data-pgto').value=ins.dataPgto||'';$('ins-obs').value=ins.obs||'';
+  buildCatPickerForFestival(ins.festivalId);
+  selectCat(ins.categoria);
+  $('modal-inscricao').classList.add('open');
+}
+
+function salvarInscricao(){
+  if(!selFestivalId){toast('Selecione um festival!','error');return;}
+  const venc=$('ins-vencimento').value;
+  if(!venc){toast('Preencha o vencimento!','error');return;}
+  const catEntries=Object.entries(tempAlunos).filter(([,ids2])=>ids2.length>0);
+  if(!catEntries.length){toast('Adicione pelo menos uma categoria com alunos!','error');return;}
+  const fest=festivais.find(f=>f.id===selFestivalId);
+  const eid=parseInt($('ins-edit-id').value);
+  if(eid){
+    const [cat,ids2]=catEntries[0];
+    const obj={id:eid,festivalId:selFestivalId,categoria:cat,alunoIds:[...ids2],valor:fest.precos[cat]||0,forma:$('ins-forma').value,vencimento:venc,status:$('ins-status').value,dataPgto:$('ins-data-pgto').value,obs:$('ins-obs').value};
+    inscricoes[inscricoes.findIndex(x=>x.id===eid)]=obj;
+    toast('Inscrição atualizada!');
+  } else {
+    catEntries.forEach(([cat,ids2])=>{
+      inscricoes.push({id:++ids.inscricoes,festivalId:selFestivalId,categoria:cat,alunoIds:[...ids2],valor:fest.precos[cat]||0,forma:$('ins-forma').value,vencimento:venc,status:$('ins-status').value,dataPgto:'',obs:$('ins-obs').value});
+    });
+    toast(`${catEntries.length} inscrição(ões) criada(s)! 🎪`);
+  }
+  closeModal('modal-inscricao');renderFestivalCards();if(activeTab==='inscricoes')renderInscricoesTab();updStats();
+}
+
+// ===== PAGAMENTOS =====
+function populatePgtoSel(){
+  $('pgto-aluno').innerHTML='<option value="">—</option>'+alunos.map(a=>`<option value="${a.id}">${a.nome}</option>`).join('');
+  $('pgto-evento').innerHTML='<option value="">—</option>'+eventos.map(e=>`<option value="${e.id}">${e.nome} — ${fmt(e.valor)}</option>`).join('');
+}
+function fillValor(){const e=eventos.find(x=>x.id===parseInt($('pgto-evento').value));if(e){$('pgto-valor').value=e.valor;if(e.prazo)$('pgto-vencimento').value=e.prazo;}}
+function quickPgto(eid){populatePgtoSel();$('pgto-evento').value=eid;fillValor();openModal('modal-pagamento');}
+
+function renderPagamentos(){
+  const q=($('search-pgtos')?.value||'').toLowerCase();
+  const f=pagamentos.filter(p=>{const al=alunos.find(a=>a.id===p.alunoId),ev=eventos.find(e=>e.id===p.eventoId);return(al?.nome||'').toLowerCase().includes(q)||(ev?.nome||'').toLowerCase().includes(q);});
+  const allF=[...pagamentos,...inscricoes];
+  const tots={Pago:0,Pendente:0,Vencido:0,Cancelado:0};
+  allF.forEach(p=>{if(tots[p.status]!==undefined)tots[p.status]+=p.valor;});
+  $('payment-summary').innerHTML=[
+    {icon:'✅',label:'Recebido',val:fmt(tots.Pago),color:'#43e97b'},
+    {icon:'⏳',label:'Pendente',val:fmt(tots.Pendente),color:'#f5c842'},
+    {icon:'❌',label:'Vencido',val:fmt(tots.Vencido),color:'#ff6584'},
+    {icon:'📊',label:'Total Geral',val:fmt(tots.Pago+tots.Pendente+tots.Vencido),color:'#6c63ff'},
+  ].map(s=>`<div class="sum-item"><div class="si-icon" style="background:${s.color}22">${s.icon}</div><div><div class="si-val" style="color:${s.color}">${s.val}</div><div class="si-lbl">${s.label}</div></div></div>`).join('');
+
+  const cols=[{k:'Pendente',dot:'#f5c842'},{k:'Pago',dot:'#43e97b'},{k:'Vencido',dot:'#ff6584'}];
+  $('payment-pipeline').innerHTML=cols.map(col=>{
+    const items=allF.filter(p=>p.status===col.k).slice(0,5);
+    return `<div class="pipe-col">
+      <div class="pipe-col-hd"><h4><span class="pipe-dot" style="background:${col.dot}"></span>${col.k}</h4><span style="font-size:12px;color:var(--text-muted)">${allF.filter(p=>p.status===col.k).length}</span></div>
+      <div class="pipe-col-body">${items.map(p=>{
+        const iF=!!p.festivalId;
+        const nm=iF?p.alunoIds.map(id=>alunos.find(a=>a.id===id)?.nome?.split(' ')[0]||'?').join(', '):(alunos.find(a=>a.id===p.alunoId)?.nome||'—');
+        const ev=iF?`🎪 ${festivais.find(f=>f.id===p.festivalId)?.nome||'—'} · ${p.categoria}`:(eventos.find(e=>e.id===p.eventoId)?.nome||'—');
+        return `<div class="pay-card"><div class="pn">${nm}</div><div class="pe">${ev}</div><div class="pv" style="color:${col.dot}">${fmt(p.valor)}</div><div class="pd">Venc: ${fmtD(p.vencimento)}</div></div>`;
+      }).join('')||'<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px">Nenhum</div>'}</div>
+    </div>`;
+  }).join('');
+
+  const tot=f.reduce((s,p)=>s+p.valor,0);
+  $('tbody-pgtos').innerHTML=(f.length?f.map(p=>{
+    const al=alunos.find(a=>a.id===p.alunoId),ev=eventos.find(e=>e.id===p.eventoId);
+    return `<tr>
+      <td><span class="avatar" style="background:${fc(al?.nome||'')};color:#fff;width:28px;height:28px;font-size:11px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;margin-right:6px">${ini(al?.nome||'?')}</span>${al?.nome||'—'}</td>
+      <td>${ev?.nome||'—'}</td>
+      <td style="font-family:'Fraunces',serif;font-weight:700">${fmt(p.valor)}</td>
+      <td>${fmtD(p.vencimento)}</td>
+      <td><span class="badge badge-${p.status.toLowerCase()}">${p.status}</span></td>
+      <td>${p.data?fmtD(p.data):'—'}${p.forma?' · '+p.forma:''}</td>
+      <td><div class="action-row">${p.status==='Pendente'?`<button class="btn btn-success btn-sm" onclick="pagarPgto(${p.id})">✓</button>`:''}<button class="btn btn-ghost btn-sm" onclick="editPgto(${p.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="delPgto(${p.id})">🗑</button></div></td>
+    </tr>`;
+  }).join(''):``)+'<tr class="total-row"><td colspan="2"><strong>Total (eventos)</strong></td><td><strong>'+fmt(tot)+'</strong></td><td colspan="4"></td></tr>';
+}
+function salvarPagamento(){
+  const alunoId=parseInt($('pgto-aluno').value),eventoId=parseInt($('pgto-evento').value),valor=parseFloat($('pgto-valor').value),venc=$('pgto-vencimento').value;
+  if(!alunoId||!eventoId||!valor||!venc){toast('Campos obrigatórios!','error');return;}
+  const eid=parseInt($('pgto-edit-id').value);
+  const obj={id:eid||++ids.pagamentos,alunoId,eventoId,valor,vencimento:venc,forma:$('pgto-forma').value,status:$('pgto-status').value,data:$('pgto-data').value,obs:$('pgto-obs').value};
+  if(eid){pagamentos[pagamentos.findIndex(p=>p.id===eid)]=obj;toast('Atualizado!');}
+  else{pagamentos.push(obj);toast('Registrado!');}
+  closeModal('modal-pagamento');renderPagamentos();updStats();
+}
+function editPgto(id){
+  populatePgtoSel();const p=pagamentos.find(x=>x.id===id);
+  $('modal-pgto-title').textContent='Editar Pagamento';$('pgto-edit-id').value=p.id;
+  $('pgto-aluno').value=p.alunoId;$('pgto-evento').value=p.eventoId;$('pgto-valor').value=p.valor;
+  $('pgto-vencimento').value=p.vencimento;$('pgto-forma').value=p.forma;$('pgto-status').value=p.status;$('pgto-data').value=p.data;$('pgto-obs').value=p.obs;
+  openModal('modal-pagamento');
+}
+function pagarPgto(id){const p=pagamentos.find(x=>x.id===id);p.status='Pago';p.data=new Date().toISOString().split('T')[0];renderPagamentos();updStats();toast('Confirmado! ✅');}
+function delPgto(id){if(!confirm('Remover?'))return;pagamentos=pagamentos.filter(p=>p.id!==id);renderPagamentos();updStats();toast('Removido!');}
+
+// ===== RELATÓRIOS =====
+function renderRelatorios(){
+  const all=[...pagamentos,...inscricoes];
+  const totalRec=all.filter(p=>p.status==='Pago').reduce((s,p)=>s+p.valor,0);
+  $('relatorios-content').innerHTML=`
+    <div class="cards-grid" style="margin-bottom:24px">
+      <div class="card metric-card"><div class="bg-glow" style="background:#43e97b"></div><div class="metric-icon">💰</div><div class="metric-val">${fmt(totalRec)}</div><div class="metric-label">Total Recebido (Geral)</div></div>
+      <div class="card metric-card"><div class="bg-glow" style="background:#ff9f43"></div><div class="metric-icon">🎪</div><div class="metric-val">${festivais.length}</div><div class="metric-label">Festivais Cadastrados</div></div>
+      <div class="card metric-card"><div class="bg-glow" style="background:#6c63ff"></div><div class="metric-icon">📝</div><div class="metric-val">${inscricoes.length}</div><div class="metric-label">Total de Inscrições</div></div>
+    </div>
+
+    <!-- Por Festival -->
+    <div class="table-container" style="margin-bottom:20px">
+      <div class="table-header"><h3>🎪 Arrecadação por Festival</h3></div>
+      <table><thead><tr><th>Festival</th><th>Data</th><th>Inscrições</th><th>Recebido</th><th>Pendente</th><th>Total</th><th>Taxa</th></tr></thead>
+      <tbody>${festivais.map((f,i)=>{
+        const ins=inscricoes.filter(x=>x.festivalId===f.id);
+        const pago=ins.filter(x=>x.status==='Pago').reduce((s,x)=>s+x.valor,0);
+        const pend=ins.filter(x=>x.status==='Pendente').reduce((s,x)=>s+x.valor,0);
+        const tot=ins.reduce((s,x)=>s+x.valor,0);
+        const taxa=tot>0?(pago/tot*100).toFixed(0):0;
+        const col=festColor(i);
+        return `<tr>
+          <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:8px"></span><strong>${f.nome}</strong><div style="font-size:11px;color:var(--text-muted)">${f.edicao||''}</div></td>
+          <td>${fmtD(f.data)}</td>
+          <td style="font-family:'Fraunces',serif;font-size:18px;font-weight:900">${ins.length}</td>
+          <td style="color:var(--accent3);font-weight:600">${fmt(pago)}</td>
+          <td style="color:var(--gold)">${fmt(pend)}</td>
+          <td style="font-family:'Fraunces',serif;font-weight:700">${fmt(tot)}</td>
+          <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--border);border-radius:3px;min-width:50px"><div style="height:6px;background:${col};border-radius:3px;width:${taxa}%"></div></div><span style="font-size:12px;font-weight:600">${taxa}%</span></div></td>
+        </tr>`;
+      }).join('')}</tbody></table>
+    </div>
+
+    <!-- Por Festival x Categoria -->
+    <div class="table-container" style="margin-bottom:20px">
+      <div class="table-header"><h3>📊 Preços e Inscrições por Festival × Categoria</h3></div>
+      <table>
+        <thead><tr><th>Festival</th>${Object.entries(CATS_DEF).map(([k,v])=>`<th>${v.icon} ${v.label}</th>`).join('')}</tr></thead>
+        <tbody>${festivais.map((f,i)=>{
+          const col=festColor(i);
+          return `<tr>
+            <td><span style="color:${col};font-weight:700">${f.nome}</span><div style="font-size:11px;color:var(--text-muted)">${f.edicao||''}</div></td>
+            ${Object.keys(CATS_DEF).map(k=>{
+              const preco=f.precos[k]||0;
+              const cnt=inscricoes.filter(x=>x.festivalId===f.id&&x.categoria===k).length;
+              return `<td>${preco>0?`<div style="font-family:'Fraunces',serif;font-weight:700;color:var(--fest);font-size:14px">${fmt(preco)}</div><div style="font-size:11px;color:var(--text-muted)">${cnt} insc.</div>`:'<span style="color:var(--text-muted);font-size:12px">—</span>'}</td>`;
+            }).join('')}
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+
+    <!-- Por Aluno -->
+    <div class="table-container">
+      <div class="table-header"><h3>📈 Situação por Aluno</h3></div>
+      <table><thead><tr><th>Aluno</th><th>Série</th><th>Eventos</th><th>Inscrições Festival</th><th>Pendências</th><th>Situação</th></tr></thead>
+      <tbody>${alunos.map(a=>{
+        const pgts=pagamentos.filter(p=>p.alunoId===a.id);
+        const fins=inscricoes.filter(i=>i.alunoIds.includes(a.id));
+        const pend=[...pgts,...fins].filter(p=>p.status==='Pendente'||p.status==='Vencido').reduce((s,p)=>s+p.valor,0);
+        const ok=pend===0;
+        return `<tr>
+          <td><span class="avatar" style="background:${fc(a.nome)};color:#fff;width:28px;height:28px;font-size:11px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;margin-right:6px">${ini(a.nome)}</span>${a.nome}</td>
+          <td>${a.serie}</td><td>${pgts.length}</td>
+          <td>${fins.length?fins.map(i=>`${CATS_DEF[i.categoria]?.icon||''} ${festivais.find(f=>f.id===i.festivalId)?.nome?.split(' ')[0]||'—'}`).join(', '):'—'}</td>
+          <td style="color:${ok?'var(--accent3)':'var(--accent2)'};font-weight:600">${fmt(pend)}</td>
+          <td><span class="badge ${ok?'badge-paid':'badge-pending'}">${ok?'Em dia':'Pendências'}</span></td>
+        </tr>`;
+      }).join('')}</tbody></table>
+    </div>`;
+}
+
+// ===== MODAL HELPERS =====
+function openModal(id){
+  if(id==='modal-aluno'&&!$('aluno-edit-id').value){
+    $('modal-aluno-title').textContent='Novo Aluno';
+    ['aluno-nome','aluno-nascimento','aluno-responsavel','aluno-telefone','aluno-email'].forEach(f=>$(f).value='');
+    $('aluno-serie').value='';$('aluno-turma').value='';$('aluno-status').value='Ativo';
+  }
+  if(id==='modal-evento'&&!$('evento-edit-id').value){
+    $('modal-evento-title').textContent='Novo Evento';
+    ['evento-nome','evento-valor','evento-data','evento-prazo','evento-turmas','evento-descricao'].forEach(f=>$(f).value='');
+    $('evento-tipo').value='';
+  }
+  if(id==='modal-novo-festival'&&!$('fest-edit-id').value){
+    $('modal-fest-title').textContent='🎪 Novo Festival';$('fest-edit-id').value='';
+    ['fest-nome','fest-edicao','fest-data','fest-prazo','fest-descricao'].forEach(f=>$(f).value='');
+    $('fest-status-field').value='Ativo';
+    buildCatPrecosForm();
+  }
+  if(id==='modal-pagamento'){
+    populatePgtoSel();
+    if(!$('pgto-edit-id').value){$('modal-pgto-title').textContent='Registrar Pagamento';['pgto-valor','pgto-vencimento','pgto-data','pgto-obs'].forEach(f=>$(f).value='');$('pgto-aluno').value='';$('pgto-evento').value='';$('pgto-forma').value='PIX';$('pgto-status').value='Pendente';}
+  }
+  $(id).classList.add('open');
+}
+
+function closeModal(id){
+  $(id).classList.remove('open');
+  if(id==='modal-aluno')$('aluno-edit-id').value='';
+  if(id==='modal-evento')$('evento-edit-id').value='';
+  if(id==='modal-novo-festival')$('fest-edit-id').value='';
+  if(id==='modal-pagamento')$('pgto-edit-id').value='';
+  if(id==='modal-inscricao')$('ins-edit-id').value='';
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)closeModal(el.id);});
+});
+
+// ===== INIT =====
+renderDash();updStats();
+$('current-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+</script>
+</body>
+</html>
